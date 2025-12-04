@@ -2,7 +2,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 
-class SimpleCongestionEnv(gym.env):
+class SimpleCongestionEnv(gym.Env):
     metadata = {"render_modes": ["human"]}
     def __init__(
             self,
@@ -14,7 +14,7 @@ class SimpleCongestionEnv(gym.env):
             alpha=1.0, beta=0.5, gamma=1.0, # reward parameters
             max_epsiode_steps=500
     ):
-        super.__init__()
+        super().__init__()
         self.link_capacity_mbps = link_capacity_mbps
         self.queue_capacity_pkts = queue_capacity_pkts
         self.pkt_size_bytes = pkt_size_bytes
@@ -38,7 +38,7 @@ class SimpleCongestionEnv(gym.env):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
         return [seed]
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options=None):
         if seed is not None:
             self.seed(seed)
         super().reset(seed=seed)
@@ -86,11 +86,11 @@ class SimpleCongestionEnv(gym.env):
 
         # check queue and drop excess
         space = max(0, self.queue_capacity_pkts - self.queue_occupancy)
-        enqueued = min(space, offered_bits)
+        enqueued = min(space, offered_pkts)
         dropped = offered_pkts - enqueued
 
         # serve packets
-        served = min(self.queue_capacity_pkts - self.queue_occupancy, service_pkts)
+        served = min(self.queue_occupancy + enqueued, service_pkts)
         self.queue_occupancy = int(max(0, self.queue_occupancy + enqueued - served))
 
         # calculate throughput
