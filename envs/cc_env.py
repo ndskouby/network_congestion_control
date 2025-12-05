@@ -3,7 +3,7 @@ from gymnasium import spaces
 import numpy as np
 
 class SimpleCongestionEnv(gym.Env):
-    metadata = {"render_modes": ["human"]}
+    metadata = {"render_modes": ["human"], "render_fps": 10}
     def __init__(
             self,
             link_capacity_mbps=10.0,
@@ -140,4 +140,10 @@ class SimpleCongestionEnv(gym.Env):
         }
         return obs, reward, done, False, info
 
-
+    def render(self, mode="human"):
+        reward = (
+            self.alpha * self.recent_throughput 
+            - self.beta * self.smoothed_rtt 
+            - self.gamma * (self.smoothed_loss * 100)
+        )
+        print(f"step={self.current_step:4d} reward={reward:.4f} rate={self.sending_rate_mbps:.2f}Mbps q={self.queue_capacity_pkts} rtt={self.smoothed_rtt*1000}ms loss={self.smoothed_loss:.3f}")
