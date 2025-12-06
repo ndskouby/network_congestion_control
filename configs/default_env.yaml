@@ -4,6 +4,8 @@ rtt_min: 20
 rtt_max: 100
 qmin: 10
 qmax: 200
+pkt_min: 1000
+pkt_max: 2000
 loss_min: 0.0
 loss_max: 0.02
 enable_cross_traffic: false
