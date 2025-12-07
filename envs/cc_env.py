@@ -79,14 +79,18 @@ class SimpleCongestionEnv(gym.Env):
     
     def step(self, action):
         # apply action
-        if action == 0:
-            self.sending_rate_mbps *= (1.0 - 10*self.rate_step_frac)
-        elif action == 1:
-            self.sending_rate_mbps *= (1.0 - self.rate_step_frac)
-        elif action == 3:
-            self.sending_rate_mbps *= (1 + self.rate_step_frac)
-        elif action == 4:
-            self.sending_rate_mbps *= (1 + 10*self.rate_step_frac)
+        # check if the sending rate is being updated directly by the AIMD agent
+        if action.ndim == 1:
+            self.sending_rate_mbps = action
+        else:
+            if action == 0:
+                self.sending_rate_mbps *= (1.0 - 10*self.rate_step_frac)
+            elif action == 1:
+                self.sending_rate_mbps *= (1.0 - self.rate_step_frac)
+            elif action == 3:
+                self.sending_rate_mbps *= (1 + self.rate_step_frac)
+            elif action == 4:
+                self.sending_rate_mbps *= (1 + 10*self.rate_step_frac)
         self.sending_rate_mbps = float(np.clip(
             self.sending_rate_mbps,
             self.observation_space.low[0],
