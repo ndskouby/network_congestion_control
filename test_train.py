@@ -42,7 +42,7 @@ model = PPO(
 print("Start training...")
 
 model.learn(
-    total_timesteps=100_000,
+    total_timesteps=1_000_000,
     callback=eval_callback,
     progress_bar=True
 )
