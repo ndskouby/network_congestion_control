@@ -8,8 +8,8 @@ class SimpleCongestionEnv(gym.Env):
     def __init__(
             self,
             dt=0.5, # step duration (s)
-            rate_step_frac=0.2, # rate change multiplier
-            alpha=1.0, beta=0.5, gamma=1.0, # reward parameters
+            rate_step_frac=0.02, # rate change multiplier
+            alpha=2.0, beta=0.5, gamma=1.0, # reward parameters
             max_epsiode_steps=500
     ):
         super().__init__()
@@ -29,7 +29,7 @@ class SimpleCongestionEnv(gym.Env):
             print(f"Error parsing YAML: {e}")
 
         # action space: decrease, hold, increase
-        self.action_space = spaces.Discrete(3)
+        self.action_space = spaces.Discrete(5)
 
         # observation space: 5D bounded vector
         # send_rate(mbps), queue_norm[0,1], smoothed_rtt(s), loss_rate[0,1], throughput(mbps)
@@ -79,10 +79,18 @@ class SimpleCongestionEnv(gym.Env):
     
     def step(self, action):
         # apply action
-        if action == 0:
-            self.sending_rate_mbps *= (1.0 - self.rate_step_frac)
-        elif action == 2:
-            self.sending_rate_mbps *= (1.0 + self.rate_step_frac)
+        # check if the sending rate is being updated directly by the AIMD agent
+        if action.ndim == 1:
+            self.sending_rate_mbps = action
+        else:
+            if action == 0:
+                self.sending_rate_mbps *= (1.0 - 10*self.rate_step_frac)
+            elif action == 1:
+                self.sending_rate_mbps *= (1.0 - self.rate_step_frac)
+            elif action == 3:
+                self.sending_rate_mbps *= (1 + self.rate_step_frac)
+            elif action == 4:
+                self.sending_rate_mbps *= (1 + 10*self.rate_step_frac)
         self.sending_rate_mbps = float(np.clip(
             self.sending_rate_mbps,
             self.observation_space.low[0],
