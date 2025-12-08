@@ -6,7 +6,7 @@ import gymnasium as gym
 env = gym.make("CongestionControl-v0")
 
 # Monitor wrapper for logging stats
-env = Monitor(env)
+env = Monitor(env, filename="logs/dqn/dqn_monitor.csv")
 
 model = DQN("MlpPolicy", env, verbose=1,
             learning_rate=1e-4,

@@ -6,7 +6,7 @@ import gymnasium as gym
 env = gym.make("CongestionControl-v0")
 
 # Monitor wrapper for logging stats
-env = Monitor(env)
+env = Monitor(env, filename="logs/ppo/ppo_monitor.csv")
 
 # Create PPO model
 model = PPO("MlpPolicy", env, verbose=1,
