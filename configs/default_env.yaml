@@ -1,13 +1,21 @@
-bw_min: 5.0
-bw_max: 20.0
-rtt_min: 20
-rtt_max: 100
-qmin: 10
-qmax: 200
-pkt_min: 1000
-pkt_max: 2000
+# Network parameters - NARROWED FURTHER
+bw_min: 10.0 # Was 8.0
+bw_max: 20.0 # Was 25.0 - 2x range instead of 3x
+rtt_min: 30 # Was 20
+rtt_max: 70 # Was 80 - narrower range
+
+# CRITICAL - even tighter queue range
+qmin: 80 # Was 60
+qmax: 120 # Was 150 - only 1.5x range
+
+pkt_min: 1400 # Was 1200 - very tight
+pkt_max: 1500 # Was 1500
+
+# Loss parameters - reduce max
 loss_min: 0.0
-loss_max: 0.02
+loss_max: 0.01 # Was 0.02 - cut in half
+
+# Cross traffic - still disabled
 enable_cross_traffic: false
 cross_start_prob: 0.02
 cross_dur_min: 1

@@ -90,10 +90,16 @@ def smoke_test_reward(model_path):
     test_env = gym.make("CongestionControl-v0")
     test_env = Monitor(test_env)
     
-    print("Testing over 10 episodes...")
     test_rewards = []
     for episode in range(10):
-        obs, _ = test_env.reset()
+        obs, info = test_env.reset()
+
+        # Print what scenario we got
+        # print(f"\n  Episode {episode+1} config:")
+        # print(f"    Bandwidth: {test_env.unwrapped.link_capacity_mbps:.1f} Mbps")
+        # print(f"    RTT: {test_env.unwrapped.base_rtt_s*1000:.1f} ms")
+        # print(f"    Queue: {test_env.unwrapped.queue_capacity_pkts} pkts")
+
         total_reward = 0
         for _ in range(500):
             action, _ = model.predict(obs, deterministic=True)
@@ -103,10 +109,38 @@ def smoke_test_reward(model_path):
                 break
         test_rewards.append(total_reward)
         print(f"  Episode {episode+1}: {total_reward:.2f}")
-    
+
     print(f"\nAverage reward: {np.mean(test_rewards):.2f} ± {np.std(test_rewards):.2f}")
     print(f"Min: {np.min(test_rewards):.2f}, Max: {np.max(test_rewards):.2f}")
+    return np.mean(test_rewards)
+
+
+def _smoke_test_reward(model_path):
+    """Test a saved model."""
+    print(f"\nLoading model: {model_path}")
+    model = PPO.load(model_path)
     
+    # Create test environment
+    test_env = gym.make("CongestionControl-v0")
+    test_env = Monitor(test_env)
+    
+    test_rewards = []
+    for episode in range(10):
+        obs, _ = test_env.reset(seed=42)  # Same seed = same scenario
+        
+        total_reward = 0
+        for _ in range(500):
+            action, _ = model.predict(obs, deterministic=True)
+            obs, reward, done, truncated, info = test_env.step(action)
+            total_reward += reward
+            if done or truncated:
+                break
+        test_rewards.append(total_reward)
+    
+    print(f"Fixed scenario: {np.mean(test_rewards):.2f} ± {np.std(test_rewards):.2f}")
+
+    print(f"\nAverage reward: {np.mean(test_rewards):.2f} ± {np.std(test_rewards):.2f}")
+    print(f"Min: {np.min(test_rewards):.2f}, Max: {np.max(test_rewards):.2f}")
     return np.mean(test_rewards)
 
 
@@ -134,10 +168,10 @@ if __name__ == "__main__":
     # ========== TRAINING EXAMPLES ==========
     
     # Train 500k model
-    train_model("model-500k", n_steps=500_000)
+    # train_model("model-500k", n_steps=500_000)
     
     # Train 1M model
-    # train_model("model-1M", n_steps=1_000_000)
+    train_model("model-1M", n_steps=1_000_000)
     
     # Train 2M model
     # train_model("model-2M", n_steps=2_000_000)
@@ -146,7 +180,8 @@ if __name__ == "__main__":
     # ========== TESTING EXAMPLES ==========
     
     # Test single model
-    smoke_test_reward("models/model-500k/best_model")
+    # smoke_test_reward("models/model-500k/best_model")
+    smoke_test_reward("models/model-1M/best_model")
     
     # Compare multiple models
     # compare_models({

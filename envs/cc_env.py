@@ -9,7 +9,8 @@ class SimpleCongestionEnv(gym.Env):
             self,
             dt=0.5, # step duration (s)
             rate_step_frac=0.02, # rate change multiplier
-            alpha=2.0, beta=0.5, gamma=1.0, # reward parameters
+            #alpha=2.0, beta=0.5, gamma=1.0, # reward parameters
+            alpha=2.0, beta=0.5, gamma=0.1, # reward parameters
             max_epsiode_steps=500
     ):
         super().__init__()
@@ -80,8 +81,8 @@ class SimpleCongestionEnv(gym.Env):
     def step(self, action):
         # apply action
         # check if the sending rate is being updated directly by the AIMD agent
-        if action.ndim == 1:
-            self.sending_rate_mbps = action
+        if isinstance(action, np.ndarray):
+            self.sending_rate_mbps = float(action)
         else:
             if action == 0:
                 self.sending_rate_mbps *= (1.0 - 10*self.rate_step_frac)
@@ -155,9 +156,18 @@ class SimpleCongestionEnv(gym.Env):
         self.recent_throughput = 0.9 * self.recent_throughput + 0.1 * throughput_mbps
 
         # compute reward
+        # _reward = (
+        #     self.alpha * self.recent_throughput 
+        #     - self.beta * self.smoothed_rtt 
+        #     - self.gamma * (self.smoothed_loss * 100)
+        # )
+
+        utilization = self.recent_throughput / self.link_capacity_mbps
+        normalized_rtt = self.smoothed_rtt / self.base_rtt_s
+
         reward = (
-            self.alpha * self.recent_throughput 
-            - self.beta * self.smoothed_rtt 
+            self.alpha * utilization * 10  # 0-10 scale
+            - self.beta * normalized_rtt 
             - self.gamma * (self.smoothed_loss * 100)
         )
 
@@ -182,9 +192,18 @@ class SimpleCongestionEnv(gym.Env):
         return obs, reward, done, False, info
 
     def render(self, mode="human"):
+        # reward = (
+        #     self.alpha * self.recent_throughput 
+        #     - self.beta * self.smoothed_rtt 
+        #     - self.gamma * (self.smoothed_loss * 100)
+        # )
+
+        utilization = self.recent_throughput / self.link_capacity_mbps
+        normalized_rtt = self.smoothed_rtt / self.base_rtt_s
+
         reward = (
-            self.alpha * self.recent_throughput 
-            - self.beta * self.smoothed_rtt 
+            self.alpha * utilization * 10  # 0-10 scale
+            - self.beta * normalized_rtt 
             - self.gamma * (self.smoothed_loss * 100)
         )
         print(f"step={self.current_step:4d} reward={reward:.4f} rate={self.sending_rate_mbps:.2f}Mbps q={self.queue_capacity_pkts} rtt={self.smoothed_rtt*1000}ms loss={self.smoothed_loss:.3f}")
