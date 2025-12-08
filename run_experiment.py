@@ -119,12 +119,13 @@ def plot_comparison(results, metric, ylabel):
     plt.bar(x, means, yerr=stds, capsize=7, alpha=0.8)
     plt.xticks(x, algorithms)
     plt.ylabel(ylabel)
-    plt.title(f"{metric} (N=10)")
+    plt.title(f"{metric} (N=100)")
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig(f"plots/{metric}/{metric}.png")
 
 
-results = run_experiment(N=10)
+results = run_experiment(N=100)
 
 print("\n\nFINAL STATISTICS (mean +/- std)")
 for alg in ["AIMD", "DQN", "PPO"]:
