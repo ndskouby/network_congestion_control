@@ -1,0 +1,15 @@
+bw_min: 10.0
+bw_max: 20.0
+rtt_min: 30
+rtt_max: 70
+qmin: 80
+qmax: 120
+pkt_min: 1400
+pkt_max: 1500
+loss_min: 0.0
+loss_max: 0.01
+enable_cross_traffic: false
+cross_start_prob: 0.0
+cross_dur_min: 1
+cross_dur_max: 6
+cross_rate: 5.0
