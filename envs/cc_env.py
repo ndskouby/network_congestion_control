@@ -113,7 +113,7 @@ class SimpleCongestionEnv(gym.Env):
         
         # simulate random drops
         if self.np_random.random() < self.loss_prob:
-            dropped_extra = int(0.1 * enqueued)
+            dropped_extra = int(0.01 * enqueued)
             enqueued = max(0, enqueued - dropped_extra)
             dropped += dropped_extra
 
@@ -156,7 +156,7 @@ class SimpleCongestionEnv(gym.Env):
 
         # compute reward
         reward = (
-            self.alpha * self.recent_throughput 
+            self.alpha * self.recent_throughput
             - self.beta * self.smoothed_rtt 
             - self.gamma * (self.smoothed_loss * 100)
         )
@@ -164,9 +164,9 @@ class SimpleCongestionEnv(gym.Env):
         obs = np.array([
             self.sending_rate_mbps,
             float(self.queue_occupancy) / float(self.queue_capacity_pkts),
-            float(self.smoothed_rtt),
-            float(self.smoothed_loss),
-            float(self.recent_throughput)
+            float(rtt),
+            float(loss_frac),
+            float(throughput_mbps)
         ], dtype=np.float32)
 
         self.current_step += 1
