@@ -148,9 +148,9 @@ models = { # CURRENT BEST
     # 'Easy Model': "models/easy-20251208_140812/best_model", # NOTE: BEST
     'Easy Model': "models/easy-20251208_140812/final", #NOTE: EVEN BETTER
     # "models/easy-20251208_133412/best_model"
-    'Medium Model (Curriculum)': 'models/test-medium-curriculum/best_model',
+    'Medium Model (Curriculum)': 'models/medium-curriculum/best_model',
     #'Medium Model (Curriculum)': 'models/curriculum-v2/medium/final',
-    'Hard Model (Curriculum)': 'models/test-hard-curriculum/best_model',
+    'Hard Model (Curriculum)': 'models/hard-curriculum/best_model',
 }
 
 models = {

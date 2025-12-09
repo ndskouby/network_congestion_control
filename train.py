@@ -115,10 +115,10 @@ def train_standard_long(model_name="model-5M", n_steps=5_000_000):
     """Standard training with larger network and more steps."""
     print(f"Start training {model_name} for {n_steps:,} steps...")
     
-    train_env = gym.make("CongestionControl-v0")
+    train_env = gym.make("CongestionControl-Easy-v0")
     train_env = Monitor(train_env)
     
-    eval_env = gym.make("CongestionControl-v0")
+    eval_env = gym.make("CongestionControl-Easy-v0")
     eval_env = Monitor(eval_env)
     
     eval_callback = EvalCallback(
