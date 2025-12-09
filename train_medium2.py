@@ -20,11 +20,9 @@ print("="*80)
 os.makedirs(f"models/{run_name}", exist_ok=True)
 os.makedirs(f"logs/{run_name}", exist_ok=True)
 
-# Load best easy model
 print("\nLoading best easy model...")
 #model = PPO.load("models/easy-20251208_140812/final")
 model = PPO.load("models/easy-20251208_140812/best_model")
-print("✓ Easy model loaded (baseline: Easy=1174, Medium=1153)")
 
 # Set up medium environment
 print("\nSetting up MEDIUM environment...")
@@ -47,9 +45,7 @@ eval_callback = EvalCallback(
     verbose=1
 )
 
-print("\n" + "="*80)
-print("TRAINING (1M steps)")
-print("="*80)
+print("TRAINING...")
 print(f"TensorBoard: tensorboard --logdir ./tensorboard/{run_name}/")
 
 # Train with reset_num_timesteps=False to continue from easy model
@@ -63,7 +59,7 @@ model.learn(
 # Save final
 model.save(f"models/{run_name}/final")
 
-print("\n✓ Training complete")
+print("\nTraining complete")
 
 # ========== PROPER TESTING ==========
 print("\n" + "="*80)
@@ -101,12 +97,8 @@ for env_name_full in ["CongestionControl-Easy-v0", "CongestionControl-Medium-v0"
     print(f"  {env_short}: {mean:.0f} ± {std:.0f}")
 
 # ========== COMPARISON ==========
-print("\n" + "="*80)
-print("COMPARISON TO BASELINE")
-print("="*80)
-print(f"{'Environment':<12} {'Old Easy Model':<18} {'New Medium Model':<20} {'Change':<10}")
-print("-"*80)
 
+# Hardcoded for testing
 baselines = {
     'Easy': (1174, 95),
     'Medium': (1153, 191),
@@ -121,25 +113,6 @@ for env_name in ['Easy', 'Medium', 'Hard']:
     
     print(f"{env_name:<12} {old_mean:.0f}±{old_std:.0f}{'':>8} {new_mean:.0f}±{new_std:.0f}{'':>8} {change_str:<10}")
 
-print("="*80)
-
-# ========== VERDICT ==========
-medium_old = baselines['Medium'][0]
-medium_new = test_results['Medium'][0]
-
-print("\n" + "="*80)
-print("VERDICT")
-print("="*80)
-
-if medium_new > medium_old + 50:
-    print(f"✅ SUCCESS: Medium improved by {medium_new - medium_old:.0f} points!")
-    print(f"   Use this model: models/{run_name}/best_model.zip")
-elif medium_new > medium_old - 50:
-    print(f"⚠️  MARGINAL: Medium changed by {medium_new - medium_old:.0f} points")
-    print(f"   Consider using easy model instead (simpler, similar performance)")
-else:
-    print(f"❌ FAILURE: Medium dropped by {medium_old - medium_new:.0f} points")
-    print(f"   Stick with easy model: models/easy-20251208_140812/final.zip")
 
 print("="*80)
 print(f"\nModel saved to: models/{run_name}/")

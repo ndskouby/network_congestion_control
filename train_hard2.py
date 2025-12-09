@@ -16,7 +16,6 @@ print("="*80)
 print(f"TRAINING HARD MODEL: {run_name}")
 print("="*80)
 
-# Create directories
 os.makedirs(f"models/{run_name}", exist_ok=True)
 os.makedirs(f"logs/{run_name}", exist_ok=True)
 
@@ -24,9 +23,8 @@ os.makedirs(f"logs/{run_name}", exist_ok=True)
 print("\nLoading best medium v2 model...")
 model = PPO.load("models/medium-v2-20251208_162738/best_model")
 #model = PPO.load("models/medium-v2-20251208_162738/final")
-print("✓ Medium v2 model loaded")
+print("Medium v2 model loaded")
 
-# Set up hard environment
 print("\nSetting up HARD environment...")
 train_env = gym.make("CongestionControl-Hard-v0")
 train_env = Monitor(train_env)
@@ -37,7 +35,6 @@ eval_env = Monitor(eval_env)
 model.set_env(train_env)
 model.tensorboard_log = f"./tensorboard/{run_name}/"
 
-# Eval callback
 eval_callback = EvalCallback(
     eval_env,
     best_model_save_path=f"./models/{run_name}/",
@@ -63,7 +60,7 @@ model.learn(
 # Save final
 model.save(f"models/{run_name}/final")
 
-print("\n✓ Training complete")
+print("\nTraining complete")
 
 # ========== TESTING WITH evaluate_policy() ==========
 print("\n" + "="*80)
@@ -98,6 +95,8 @@ print("="*80)
 print(f"{'Environment':<12} {'Easy Model':<18} {'Medium v2':<18} {'Hard v2':<18} {'Best':<10}")
 print("-"*80)
 
+# Hardcoded for testing
+
 baselines = {
     'Easy': (1174, 95),
     'Medium': (1153, 191),
@@ -126,23 +125,6 @@ print("="*80)
 # ========== VERDICT ==========
 hard_baseline = baselines['Hard'][0]
 hard_new = test_results['Hard'][0]
-
-print("\n" + "="*80)
-print("VERDICT")
-print("="*80)
-
-if hard_new > 1100:
-    print(f"✅ EXCELLENT: Hard v2 scored {hard_new:.0f} (target was >1100)")
-    print(f"   Use this model: models/{run_name}/best_model.zip")
-elif hard_new > 1000:
-    print(f"✅ GOOD: Hard v2 scored {hard_new:.0f} (solid improvement)")
-    print(f"   Use this model: models/{run_name}/best_model.zip")
-elif hard_new > 950:
-    print(f"⚠️  OKAY: Hard v2 scored {hard_new:.0f} (marginal improvement)")
-    print(f"   Consider which model generalizes best")
-else:
-    print(f"⚠️  MIXED: Hard v2 scored {hard_new:.0f}")
-    print(f"   Compare all three models to choose best")
 
 print("\n" + "="*80)
 print("FINAL SUMMARY - ALL THREE MODELS")
