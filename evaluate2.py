@@ -3,12 +3,14 @@ import gymnasium as gym
 import envs
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.evaluation import evaluate_policy
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import os
 
-def test_model_on_env(model_path, env_name, n_episodes=20):
+
+def _test_model_on_env(model_path, env_name, n_episodes=20):
     """Test a model on an environment."""
     if not os.path.exists(model_path + ".zip"):
         print(f"   ⚠️  Model not found: {model_path}")
@@ -32,6 +34,48 @@ def test_model_on_env(model_path, env_name, n_episodes=20):
     
     return np.mean(rewards), np.std(rewards), rewards
 
+def test_model_on_env(model_path, env_name, n_episodes=20):
+    """Test a model on an environment using evaluate_policy."""
+    if not os.path.exists(model_path + ".zip"):
+        print(f"   ⚠️  Model not found: {model_path}")
+        return None, None, None
+    
+    model = PPO.load(model_path)
+    test_env = gym.make(env_name)
+    test_env = Monitor(test_env)
+    
+    # USE evaluate_policy - THE ONLY METHOD THAT WORKS
+    mean_reward, std_reward = evaluate_policy(
+        model,
+        test_env,
+        n_eval_episodes=n_episodes,
+        deterministic=True,
+        return_episode_rewards=False
+    )
+    
+    # Return dummy rewards list (not used for anything critical)
+    rewards = [mean_reward] * n_episodes
+    
+    return mean_reward, std_reward, rewards
+
+def _test_baseline_on_env(policy_fn, env_name, n_episodes=20):
+    """Test a baseline policy on an environment."""
+    test_env = gym.make(env_name)
+    test_env = Monitor(test_env)
+    
+    rewards = []
+    for i in range(n_episodes):
+        obs, _ = test_env.reset()
+        total_reward = 0
+        for step in range(500):
+            action = policy_fn(obs, step)
+            obs, reward, done, truncated, info = test_env.step(action)
+            total_reward += reward
+            if done or truncated:
+                break
+        rewards.append(total_reward)
+    
+    return np.mean(rewards), np.std(rewards), rewards
 
 def test_baseline_on_env(policy_fn, env_name, n_episodes=20):
     """Test a baseline policy on an environment."""
@@ -99,7 +143,7 @@ print("="*80)
 
 # Define models and environments
 # NOTE: Easy model is optional - comment out if you don't have one
-models = {
+models = { # CURRENT BEST
     #'Easy Model': "models/easy-20251208_133412/final",
     # 'Easy Model': "models/easy-20251208_140812/best_model", # NOTE: BEST
     'Easy Model': "models/easy-20251208_140812/final", #NOTE: EVEN BETTER
@@ -107,6 +151,12 @@ models = {
     'Medium Model (Curriculum)': 'models/test-medium-curriculum/best_model',
     #'Medium Model (Curriculum)': 'models/curriculum-v2/medium/final',
     'Hard Model (Curriculum)': 'models/test-hard-curriculum/best_model',
+}
+
+models = {
+    'Easy Model': "models/easy-20251208_140812/final", #NOTE: EVEN BETTER
+    'Medium Model (Curriculum)': 'models/medium-v2-20251208_162738/final',
+    'Hard Model (Curriculum)': 'models/hard-v2-20251208_175714/final',
 }
 
 environments = {
@@ -218,27 +268,38 @@ print("\n" + "="*80)
 print("BEST PERFORMER FOR EACH ENVIRONMENT")
 print("="*80)
 
+ranking_lists = {}
 for env_name in environments.keys():
-    print(f"\n{env_name} Environment:")
     
     # Collect all results for this environment
     all_results = {}
     
     # Add RL models
+    # Assuming 'models' and 'rl_results' are defined, and np.isnan is available
     for model_name in models.keys():
         mean = rl_results[model_name][env_name]['mean']
         if not np.isnan(mean):
             all_results[model_name] = mean
     
     # Add baselines
+    # Assuming 'baselines' and 'baseline_results' are defined
     for baseline_name in baselines.keys():
         all_results[baseline_name] = baseline_results[baseline_name][env_name]['mean']
     
-    # Sort and display top 5
+    # Sort results
     sorted_results = sorted(all_results.items(), key=lambda x: x[1], reverse=True)
+    
+    # Create the list of tuples for the top 5 policies
+    top_5_list = []
     for i, (name, score) in enumerate(sorted_results[:5], 1):
-        emoji = "🏆" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else "  "
-        print(f"  {emoji} {i}. {name:35s}: {score:.1f}")
+        # Determine the emoji for the rank
+        trophy = "🏆" if i == 1 else ""
+        
+        # Append the tuple (Name, Score, Emoji) to the list
+        top_5_list.append((name, score, trophy))
+        
+    # Assign the list to the main dictionary under the environment name
+    ranking_lists[env_name] = top_5_list
 
 # ========== CURRICULUM PROGRESSION ==========
 print("\n" + "="*80)
