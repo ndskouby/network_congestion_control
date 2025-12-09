@@ -80,7 +80,7 @@ class SimpleCongestionEnv(gym.Env):
     
     def step(self, action):
         # apply action
-        if isinstance(action, np.ndarray):
+        if isinstance(action, np.ndarray) and if action.ndim == 1:
             self.sending_rate_mbps = float(action)
         else:
             if action == 0:
@@ -110,7 +110,7 @@ class SimpleCongestionEnv(gym.Env):
         dropped = offered_pkts - enqueued
         
         if self.np_random.random() < self.loss_prob:
-            dropped_extra = int(0.1 * enqueued)
+            dropped_extra = int(0.01 * enqueued)
             enqueued = max(0, enqueued - dropped_extra)
             dropped += dropped_extra
 
@@ -164,9 +164,9 @@ class SimpleCongestionEnv(gym.Env):
         obs = np.array([
             self.sending_rate_mbps,
             float(self.queue_occupancy) / float(self.queue_capacity_pkts),
-            float(self.smoothed_rtt),
-            float(self.smoothed_loss),
-            float(self.recent_throughput)
+            float(rtt),
+            float(loss_frac),
+            float(throughput_mbps)
         ], dtype=np.float32)
 
         self.current_step += 1
