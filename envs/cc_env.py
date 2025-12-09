@@ -80,7 +80,7 @@ class SimpleCongestionEnv(gym.Env):
     
     def step(self, action):
         # apply action
-        if isinstance(action, np.ndarray) and if action.ndim == 1:
+        if isinstance(action, np.ndarray) and action.ndim == 1:
             self.sending_rate_mbps = float(action)
         else:
             if action == 0:
