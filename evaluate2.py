@@ -10,30 +10,6 @@ import pandas as pd
 import os
 
 
-def _test_model_on_env(model_path, env_name, n_episodes=20):
-    """Test a model on an environment."""
-    if not os.path.exists(model_path + ".zip"):
-        print(f"   ⚠️  Model not found: {model_path}")
-        return None, None, None
-    
-    model = PPO.load(model_path)
-    test_env = gym.make(env_name)
-    test_env = Monitor(test_env)
-    
-    rewards = []
-    for i in range(n_episodes):
-        obs, _ = test_env.reset()
-        total_reward = 0
-        for _ in range(500):
-            action, _ = model.predict(obs, deterministic=True)
-            obs, reward, done, truncated, info = test_env.step(action)
-            total_reward += reward
-            if done or truncated:
-                break
-        rewards.append(total_reward)
-    
-    return np.mean(rewards), np.std(rewards), rewards
-
 def test_model_on_env(model_path, env_name, n_episodes=20):
     """Test a model on an environment using evaluate_policy."""
     if not os.path.exists(model_path + ".zip"):
@@ -58,24 +34,6 @@ def test_model_on_env(model_path, env_name, n_episodes=20):
     
     return mean_reward, std_reward, rewards
 
-def _test_baseline_on_env(policy_fn, env_name, n_episodes=20):
-    """Test a baseline policy on an environment."""
-    test_env = gym.make(env_name)
-    test_env = Monitor(test_env)
-    
-    rewards = []
-    for i in range(n_episodes):
-        obs, _ = test_env.reset()
-        total_reward = 0
-        for step in range(500):
-            action = policy_fn(obs, step)
-            obs, reward, done, truncated, info = test_env.step(action)
-            total_reward += reward
-            if done or truncated:
-                break
-        rewards.append(total_reward)
-    
-    return np.mean(rewards), np.std(rewards), rewards
 
 def test_baseline_on_env(policy_fn, env_name, n_episodes=20):
     """Test a baseline policy on an environment."""
